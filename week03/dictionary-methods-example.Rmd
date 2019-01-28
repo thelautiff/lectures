@@ -14,7 +14,7 @@ Let's apply this technique to tweets by the four leading candidates in the 2016 
 library(quanteda)
 tweets <- read.csv('candidate-tweets.csv', stringsAsFactors=F)
 ```
-
+(if ur stuck make sure ur setting the correct working directory. 
 We will use the positive and negative categories in the augmented General Inquirer dictionary to measure the extent to which these candidates adopted a positive or negative tone during the election campaign.
 
 Note that first you will need to install the `quanteda.dictionaries` package from GitHub
@@ -22,7 +22,7 @@ Note that first you will need to install the `quanteda.dictionaries` package fro
 ```{r, eval=FALSE}
 devtools::install_github("kbenoit/quanteda.dictionaries")
 ```
-
+(the dictionary is alr built in. we'll use the augmnented general inquiry one. and dictionaries have their own special class)
 First, we load the dictionary object. Note that we can apply the dictionary object directly (as we will see later), but for now let's learn how to do this if we had a list of positive and negative words on a different file.
 
 ```{r}
@@ -35,38 +35,38 @@ neg.words <- data_dictionary_geninqposneg[['negative']]
 sample(pos.words, 10)
 sample(neg.words, 10)
 ```
-
+(extract the list of words within positive and negative, see some 10 random ones)
 As earlier in the course, we will convert our text to a corpus object. Note that here `corpus` takes detects some metadata, which we will use later.
 
 ```{r}
 twcorpus <- corpus(tweets)
 ```
-
+(quanteda is smart enough to determine which is the document and which are metadata)
 Now we're ready to run the sentiment analysis! First we will construct a dictionary object.
 
 ```{r}
 mydict <- dictionary(list(positive = pos.words,
                           negative = neg.words))
 ```
-
+(dictionary funciton - takes a name list (positive is the name) and the terms: pos.words from above. it's just a vector of words)
 And now we apply it to the corpus in order to count the number of words that appear in each category
 
 ```{r}
 sent <- dfm(twcorpus, dictionary = mydict)
 ```
-
+(dfm has dictionary, so u put ur dictionary in for that argument there. but here instead of a normal dfm being produced, each column is a R dictionary category: 1 count of positive words, 1 for negative, and from here we make a sentiment score)
 We can then extract the score and add it to the data frame as a new variable
 
 ```{r}
 tweets$score <- as.numeric(sent[,1]) - as.numeric(sent[,2])
 ```
-
+(We'll keep it simple. just the difference between number of positiv eand negative words, and add in as a variable in original data)
 And now start answering some descriptive questions...
 
 ```{r}
-# what is the average sentiment score?
+# what is the average sentiment score? (on average more positive than negative stuff. half a positive word more per negative word)
 mean(tweets$score)
-# what is the most positive and most negative tweet?
+# what is the most positive and most negative tweet? 
 tweets[which.max(tweets$score),]
 tweets[which.min(tweets$score),]
 # what is the proportion of positive, neutral, and negative tweets?
@@ -88,7 +88,7 @@ for (cand in candidates){
     )
 }
 ```
-
+(take the score of the tweets for that candidate, take the average, and look at the 4 first decimal points  (87)
 But what happens if we now run the analysis excluding a single word?
 
 ```{r}
@@ -106,7 +106,7 @@ for (cand in candidates){
 }
 
 ```
-
+(if you take out the word great... it's v different. but how do u find these. e.g. bootstrapping - exclude every single word at a time... gives u a sense of how sensitive. or take out ones that are more stylistic of particular candidates)
 How would we normalize by text length? (Maybe not necessary here given that tweets have roughly the same length.)
 
 ```{r}
@@ -125,7 +125,7 @@ sent
 (sent[,1]-sent[,2])*100
 
 ```
-
+(proportion of words with a document that falls within one of the categories: use another argument within dfm function called groups. take the corpus and creates a dtm which collapses the rows into 1 row per candidate. second step: look at first 10 columns, gives a count. dfmweight: takes the dfm you created and changes the way you comput the feature counts to something else i.e. proportion (there are other ways just check help. step 3: collapse all these columns into single columns based on whether they appear in each of the category column. the lookup is for that. looks for propprtions of words in each category and combines them with dfm with only 4 rows 1 per group of documents, and 2 columns correpsonding to proportion of words appearing in each category.i missed the last thing he said)
 Finally, let's apply a different dictionary so that we can practice with dictionaries in different formats:
 
 ```{r}
@@ -152,7 +152,7 @@ sort(moral[,'sanctity.virtue']*100)
 sort(moral[,'authority.virtue']*100)
 
 ```
-
+(we're now gonna use the moral foundations documentary. ?data_dictionary_MFD oh man i can't rmb what names does. anyway applying it to our corpus. first aggregate the corupus at candidate level, then compute proportion of words within each documnent, then do lookup with the new dictionary)
 ## Identifying most unique features of documents
 
 _Keyness_ is a measure of to what extent some features are specific to a (group of) document in comparison to the rest of the corpus, taking into account that some features may be too rare.
